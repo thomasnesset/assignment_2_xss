@@ -10,6 +10,6 @@
   flask --app flaskr init-db
 ```
 ```bash
-  flask --app flaskr run
+  flask --app flaskr run --debug
 ```
 
