@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Vangen99{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  {% for post in posts %}
+    <div class="row">
+        <div class="card text-white bg-dark m-3" style="max-width: 18rem;">
+            <div class="card-body">
+                <h5 class="card-title">{{ post['title'] }}</h5>
+                <h6 class="card-subtitle">by {{ post['username'] }}</h6>
+                <hr>
+                <p class="card-text">{{ post['body'] }}</p>
+                {% if g.user['id'] == post['author_id'] %}
+                    <a href="{{ url_for('blog.update', id=post['id']) }}" class="card-link">Edit</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+  {% endfor %}
+{% endblock %}
