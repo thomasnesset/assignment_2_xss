@@ -2,6 +2,8 @@ import os
 
 from flask import Flask
 
+from flask_qrcode import QRcode
+
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
@@ -36,4 +38,5 @@ def create_app(test_config=None):
     def hello():
         return 'Hello, World!!!!'
     
+    QRcode(app)
     return app

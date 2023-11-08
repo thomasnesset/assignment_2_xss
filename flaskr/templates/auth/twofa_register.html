@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block header %}
+    <h1>{% block title %}Register{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<h2>This will only show once!!!</h2>
+<img src="{{ qrcode(totp) }}">
+<h1>Scan in Google Authenticator</h1>
+<a href="{{ url_for('auth.login') }}">Log in</a>
+{% endblock %}
