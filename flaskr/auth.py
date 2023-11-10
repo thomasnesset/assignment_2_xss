@@ -1,4 +1,5 @@
 import functools
+import pyotp
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
@@ -7,13 +8,15 @@ from werkzeug.security import check_password_hash, generate_password_hash # for 
 
 from flaskr.db import get_db
 
-bp = Blueprint('auth', __name__, url_prefix='/auth') # creates a Blueprint named 'auth'
+bp = Blueprint('auth', __name__, url_prefix='/auth')
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        otp_key = pyotp.random_base32()
+        
         db = get_db()
         error = None
         
@@ -25,14 +28,15 @@ def register():
         if error is None:
             try:
                 db.execute(
-                    'INSERT INTO user (username, password) VALUES (?, ?)', 
-                    (username, generate_password_hash(password))
+                    'INSERT INTO user (username, password, otp_key) VALUES (?, ?, ?)', 
+                    (username, generate_password_hash(password), otp_key)
                 )
                 db.commit()
             except db.IntegrityError:
                 error = 'User {} is already registered.'.format(username)
             else:
-                return redirect(url_for('auth.login'))
+                qrcode = pyotp.totp.TOTP(otp_key).provisioning_uri(username, issuer_name="Mads Andre Vangen99 sin blogg")
+                return render_template('auth/twofa_register.html', totp=qrcode)
             
         flash(error)
         
@@ -43,16 +47,22 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        otp = request.form['otp']
+        
         db = get_db()
         error = None
         user = db.execute(
             'SELECT * FROM user WHERE username = ?', (username,)
         ).fetchone()
         
+        print(otp, pyotp.TOTP(user['otp_key']).now())
+        
         if user is None:
             error = 'Incorrect username.'
         elif not check_password_hash(user['password'], password):
             error = 'Incorrect password.'
+        elif not pyotp.TOTP(user['otp_key']).verify(otp):
+            error = 'Incorrect OTP.'
             
         if error is None:
             session.clear()
@@ -88,3 +98,7 @@ def login_required(view):
         return view(**kwargs)
     
     return wrapped_view
+
+@bp.route('twofa_register')
+def twofa_register():
+    return render_template('auth/twofa_register.html')
