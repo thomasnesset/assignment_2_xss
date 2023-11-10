@@ -14,7 +14,7 @@
                     <h5 class="card-title">{{ post['title'] }}</h5>
                     <h6 class="card-subtitle">by {{ post['username'] }}</h6>
                     <hr>
-                    <p class="card-text">{{ post['body'] }}</p>
+                    <p class="card-text">{{ post['body'] | safe}}</p>
                     {% if g.user['id'] == post['author_id'] %}
                         <a href="{{ url_for('blog.update', id=post['id']) }}" class="card-link">Edit</a>
                     {% endif %}
