@@ -8,18 +8,8 @@
 # To run this project
 
 ```bash
-  git clone https://github.com/thomasnesset/assignment_2_xss
+  docker build -t ikt222 .
 ```
 ```bash
-  cd assignment_2_xss
+  docker run -p 5000:5000 ikt222
 ```
-```bash
-  pip install -r requirements.txt
-```
-```bash
-  flask --app flaskr init-db
-```
-```bash
-  flask --app flaskr --debug run
-```
-
