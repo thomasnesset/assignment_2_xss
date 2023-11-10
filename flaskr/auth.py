@@ -2,13 +2,21 @@ import functools
 import pyotp
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Flask, Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash # for hashing passwords
-
 from flaskr.db import get_db
 
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 bp = Blueprint('auth', __name__, url_prefix='/auth')
+limiter = Limiter(
+    get_remote_address,
+    app=Flask(__name__),
+    default_limits=["3 per minute"],
+    storage_uri="memory://",
+)
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
@@ -43,6 +51,7 @@ def register():
     return render_template('auth/register.html')
 
 @bp.route('/login', methods=('GET', 'POST'))
+@limiter.limit("3/minute")
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -54,8 +63,6 @@ def login():
         user = db.execute(
             'SELECT * FROM user WHERE username = ?', (username,)
         ).fetchone()
-        
-        print(otp, pyotp.TOTP(user['otp_key']).now())
         
         if user is None:
             error = 'Incorrect username.'
